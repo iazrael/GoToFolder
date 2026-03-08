@@ -2,58 +2,60 @@
 
 一个极简的 macOS 工具，通过 Finder 工具栏按钮一键在当前文件夹打开终端。
 
-![Go2Shell Icon](Resources/icon.png)
-
 ## 功能
 
 - 点击 Finder 工具栏按钮，在当前文件夹打开终端
-- 支持多种终端应用（Terminal.app, iTerm2）
 - 自动 cd 到当前 Finder 窗口路径
+- 极简设计，无多余配置
 
 ## 快速开始
 
-### 1. 安装工具栏脚本
+### 1. 构建应用
 
-将 `Resources/ToolbarScript.applescript` 拖到 Finder 工具栏：
+```bash
+./build.sh
+```
 
-1. 在 Finder 中，按住 `⌘` 键
-2. 将工具栏脚本文件拖到 Finder 窗口顶部的工具栏区域
-3. 释放鼠标，脚本按钮就会出现
+### 2. 安装到应用程序文件夹
 
-### 2. 使用
+```bash
+cp -R Go2Shell.app /Applications/
+```
 
-- 在任意 Finder 窗口中，点击工具栏上的脚本按钮
-- 新终端窗口会在当前文件夹打开
+### 3. 添加到 Finder 工具栏
 
-## 不同终端
+1. 打开一个新的 Finder 窗口
+2. 在窗口右上角工具栏区域，**按住 ⌘ 键点击**
+3. 从菜单中选择「自定义工具栏...」
+4. 将 Go2Shell 图标拖到工具栏
+5. 点击「完成」
 
-项目提供了针对不同终端的脚本版本：
+### 4. 使用
 
-- `ToolbarScript.applescript` - 系统自带 Terminal.app
-- `ToolbarScript-iTerm2.applescript` - iTerm2
+在任意 Finder 窗口中，点击工具栏上的 Go2Shell 图标即可在当前文件夹打开终端。
+
+## 切换终端应用
+
+默认使用系统自带的 Terminal.app。要使用 iTerm2 等其他终端，可以修改 `Sources/Go2Shell/main.swift` 中的 `terminalBundleId`：
+
+```swift
+// Terminal.app (默认)
+"com.apple.Terminal"
+
+// iTerm2
+"com.googlecode.iterm2"
+
+// Warp
+"dev.warp.Warp-Stable"
+```
+
+修改后重新运行 `./build.sh` 即可。
 
 ## 构建
 
 ```bash
 ./build.sh
 ```
-
-这将生成 `Go2Shell.app`。
-
-## 安装应用
-
-```bash
-cp -R Go2Shell.app /Applications/
-```
-
-## 配置
-
-默认使用 Terminal.app。要使用其他终端，请：
-
-1. 打开 Go2Shell.app
-2. 按照提示选择终端应用
-
-或直接拖入对应的工具栏脚本版本。
 
 ## 原版 Go2Shell
 

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init:*)",
+      "Bash(swift build:*)",
+      "Bash(swift:*)",
+      "Bash(swiftc:*)",
+      "Bash(git:*)",
+      "Bash(./build.sh:*)",
+      "Bash(open:*)"
+    ]
+  }
+}

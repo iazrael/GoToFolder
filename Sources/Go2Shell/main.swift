@@ -33,17 +33,14 @@ class ConfigManager {
     func getTerminalURL() -> URL? {
         let config = getConfig()
 
-        // 尝试通过 Bundle ID 查找
         if let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: config.terminalBundleId) {
             return appURL
         }
 
-        // 尝试自定义路径
         if let customPath = config.terminalPath {
             return URL(fileURLWithPath: customPath)
         }
 
-        // 回退到系统 Terminal
         return NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.Terminal")
     }
 }
@@ -71,7 +68,6 @@ class FinderPathExtractor {
             }
         }
 
-        // 回退到桌面
         return NSSearchPathForDirectoriesInDomains(.desktopDirectory, .userDomainMask, true).first ?? NSHomeDirectory()
     }
 }
@@ -83,85 +79,67 @@ class TerminalLauncher {
 
     func openTerminal(at path: String) {
         guard let terminalURL = configManager.getTerminalURL() else {
-            showError("无法找到终端应用")
             return
         }
 
         let config = NSWorkspace.OpenConfiguration()
         config.activates = true
 
-        // 使用 open withApplicationAt 打开文件夹
         NSWorkspace.shared.open(
             [URL(fileURLWithPath: path)],
             withApplicationAt: terminalURL,
             configuration: config
         ) { runningApp, error in
             if let error = error {
-                print("Error opening terminal: \(error.localizedDescription)")
+                print("Error: \(error.localizedDescription)")
             }
         }
-    }
-
-    private func showError(_ message: String) {
-        let alert = NSAlert()
-        alert.messageText = "Go2Shell"
-        alert.informativeText = message
-        alert.alertStyle = .warning
-        alert.runModal()
-    }
-}
-
-// MARK: - URL Scheme Handler
-
-class URLSchemeHandler: NSObject {
-    private let finderExtractor = FinderPathExtractor()
-    private let launcher = TerminalLauncher()
-
-    @objc func handle(_ event: NSAppleEventDescriptor, replyEvent: NSAppleEventDescriptor) {
-        let path = finderExtractor.getCurrentPath()
-        launcher.openTerminal(at: path)
     }
 }
 
 // MARK: - Main App
 
 class Go2ShellApp: NSObject, NSApplicationDelegate {
-    private var urlSchemeHandler: URLSchemeHandler!
-
     func applicationDidFinishLaunching(_ notification: Notification) {
-        urlSchemeHandler = URLSchemeHandler()
+        // 检查是否有特殊标志（比如双击 Dock 图标或从 Launchpad 打开）
+        // 如果是从工具栏点击，直接执行并退出
 
-        // 注册 URL Scheme 处理
-        let eventMask = AEEventClass(kCoreEventClass) | AEEventID(kAEOpenDocuments)
-        NSAppleEventManager.shared().setEventHandler(
-            urlSchemeHandler!,
-            andSelector: #selector(URLSchemeHandler.handle(_:replyEvent:)),
-            forEventClass: eventMask,
-            andEventID: AEEventID(kAEOpenDocuments)
-        )
+        let finder = FinderPathExtractor()
+        let launcher = TerminalLauncher()
+        let path = finder.getCurrentPath()
 
-        // 如果没有参数，显示配置窗口
-        let arguments = CommandLine.arguments
-        if arguments.count == 1 {
-            showConfigWindow()
+        // 打开终端
+        launcher.openTerminal(at: path)
+
+        // 延迟退出，确保终端已启动
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            NSApp.terminate(nil)
         }
+    }
+
+    // 当应用被双击打开时（首次安装配置）
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        showConfigWindow()
+        return false
     }
 
     private func showConfigWindow() {
         let alert = NSAlert()
-        alert.messageText = "欢迎使用 Go2Shell"
+        alert.messageText = "Go2Shell 已安装"
         alert.informativeText = """
-        1. 请将 Resources/ToolbarScript.applescript 拖到 Finder 工具栏
-        2. 点击工具栏按钮即可在当前文件夹打开终端
+        使用方法：
 
-        当前配置的终端: \(ConfigManager().getConfig().terminalBundleId)
+        1. 在 Finder 窗口右上角，按住 ⌘ 键点击工具栏
+        2. 选择"自定义工具栏..."
+        3. 将 Go2Shell 图标拖到工具栏
+
+        之后点击工具栏上的 Go2Shell 图标即可在当前文件夹打开终端。
+
+        当前配置: \(ConfigManager().getConfig().terminalBundleId)
         """
         alert.alertStyle = .informational
         alert.addButton(withTitle: "完成")
         alert.runModal()
-
-        // 退出应用
-        NSApp.terminate(nil)
     }
 }
 
@@ -170,13 +148,8 @@ let app = NSApplication.shared
 let delegate = Go2ShellApp()
 app.delegate = delegate
 
-// 处理直接打开的情况（用于测试）
-if CommandLine.arguments.contains("--test") {
-    let finder = FinderPathExtractor()
-    let launcher = TerminalLauncher()
-    let path = finder.getCurrentPath()
-    print("Current path: \(path)")
-    launcher.openTerminal(at: path)
-}
+// 设置应用为后台应用（不显示 Dock 图标）
+// 如果用户双击 .app 文件，会显示配置窗口
+app.setActivationPolicy(.accessory)
 
 app.run()
