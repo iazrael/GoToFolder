@@ -11,7 +11,9 @@
       "Bash(log show --predicate 'process == \"\"Go2Shell\"\"' --last 1m)",
       "Bash(log show --predicate 'process == \"\"Go2Shell\"\"' --last 30s --style compact)",
       "Bash(log show --predicate 'process == \"\"Go2Shell\"\"' --last 1m --style compact)",
-      "Bash(/Applications/Go2Shell.app/Contents/MacOS/Go2Shell)"
+      "Bash(/Applications/Go2Shell.app/Contents/MacOS/Go2Shell)",
+      "Bash(xcrun --sdk macosx --show-sdk-path)",
+      "Bash(xcodebuild -showsdks)"
     ]
   }
 }

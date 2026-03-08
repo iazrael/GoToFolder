@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>GoToFolder</string>
+
+    <key>CFBundleIdentifier</key>
+    <string>com.yourname.GoToFolder</string>
+
+    <key>CFBundleName</key>
+    <string>GoToFolder</string>
+
+    <key>CFBundleDisplayName</key>
+    <string>GoToFolder</string>
+
+    <key>CFBundleVersion</key>
+    <string>1</string>
+
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+
+    <key>CFBundleSignature</key>
+    <string>????</string>
+
+    <key>LSMinimumSystemVersion</key>
+    <string>12.0</string>
+
+    <!-- Hide from Dock; appears only as toolbar item -->
+    <key>LSUIElement</key>
+    <true/>
+
+    <!-- Required for AppleScript automation of Finder -->
+    <key>NSAppleScriptEnabled</key>
+    <true/>
+
+    <!-- Human-readable reason shown in the permission dialog -->
+    <key>NSAppleEventsUsageDescription</key>
+    <string>GoToFolder needs to read the current Finder window path to open your terminal there.</string>
+
+    <!-- Suppress "App is not optimized" warning on Apple Silicon -->
+    <key>LSArchitecturePriority</key>
+    <array>
+        <string>arm64</string>
+        <string>x86_64</string>
+    </array>
+</dict>
+</plist>

@@ -1,18 +1,25 @@
-// swift-tools-version: 5.7
+// swift-tools-version: 5.9
+// Package.swift — For IDE support / LSP (language server) only.
+// Use build.sh for the actual .app bundle; swift build doesn't produce a
+// proper macOS .app bundle on its own.
+
 import PackageDescription
 
 let package = Package(
-    name: "Go2Shell",
-    products: [
-        .executable(
-            name: "Go2Shell",
-            targets: ["Go2Shell"]
-        )
+    name: "GoToFolder",
+    platforms: [
+        .macOS(.v12)
     ],
     targets: [
         .executableTarget(
-            name: "Go2Shell",
-            path: "Sources/Go2Shell"
+            name: "GoToFolder",
+            path: "Sources/GoToFolder",
+            swiftSettings: [
+                .unsafeFlags(["-framework", "Cocoa"])
+            ],
+            linkerSettings: [
+                .linkedFramework("Cocoa")
+            ]
         )
     ]
 )
