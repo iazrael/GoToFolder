@@ -30,18 +30,8 @@ class ConfigManager {
         }
     }
 
-    func getTerminalURL() -> URL? {
-        let config = getConfig()
-
-        if let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: config.terminalBundleId) {
-            return appURL
-        }
-
-        if let customPath = config.terminalPath {
-            return URL(fileURLWithPath: customPath)
-        }
-
-        return NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.Terminal")
+    func getTerminalBundleId() -> String {
+        return getConfig().terminalBundleId
     }
 }
 
@@ -51,10 +41,13 @@ class FinderPathExtractor {
     func getCurrentPath() -> String {
         let script = """
         tell application "Finder"
-            if (count of windows) > 0 then
-                return POSIX path of (target of front window as alias)
+            activate
+            set windowCount to count of windows
+            if windowCount > 0 then
+                set currentPath to target of front window as alias
+                return POSIX path of currentPath
             else
-                return POSIX path of (path to desktop folder as alias)
+                return ""
             end if
         end tell
         """
@@ -68,6 +61,10 @@ class FinderPathExtractor {
             }
         }
 
+        if let err = error {
+            NSLog("Go2Shell AppleScript error: \(err)")
+        }
+
         return NSSearchPathForDirectoriesInDomains(.desktopDirectory, .userDomainMask, true).first ?? NSHomeDirectory()
     }
 }
@@ -78,21 +75,69 @@ class TerminalLauncher {
     private let configManager = ConfigManager()
 
     func openTerminal(at path: String) {
-        guard let terminalURL = configManager.getTerminalURL() else {
-            return
-        }
+        let bundleId = configManager.getTerminalBundleId()
 
-        let config = NSWorkspace.OpenConfiguration()
-        config.activates = true
-
-        NSWorkspace.shared.open(
-            [URL(fileURLWithPath: path)],
-            withApplicationAt: terminalURL,
-            configuration: config
-        ) { runningApp, error in
-            if let error = error {
-                print("Error: \(error.localizedDescription)")
+        if bundleId == "com.apple.Terminal" {
+            openTerminalApp(at: path)
+        } else if bundleId == "com.googlecode.iterm2" {
+            openITerm2(at: path)
+        } else {
+            // 其他终端，直接打开文件夹
+            if let terminalURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleId) {
+                NSWorkspace.shared.open(
+                    [URL(fileURLWithPath: path)],
+                    withApplicationAt: terminalURL,
+                    configuration: NSWorkspace.OpenConfiguration()
+                )
             }
+        }
+    }
+
+    private func openTerminalApp(at path: String) {
+        // 创建临时脚本来启动 Terminal 并 cd
+        let tempScriptContent = """
+        #!/bin/bash
+        cd "\(path)"
+        exec bash
+        """
+
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempScriptURL = tempDir.appendingPathComponent("go2shell_\(UUID().uuidString).command")
+
+        do {
+            try tempScriptContent.write(to: tempScriptURL, atomically: true, encoding: .utf8)
+            try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: tempScriptURL.path)
+
+            // 使用 open 命令打开 .command 文件，Terminal 会自动执行它
+            NSWorkspace.shared.open([tempScriptURL], withApplicationAt: URL(fileURLWithPath: "/System/Applications/Utilities/Terminal.app"), configuration: NSWorkspace.OpenConfiguration())
+
+            // 延迟删除临时文件
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                try? FileManager.default.removeItem(at: tempScriptURL)
+            }
+        } catch {
+            NSLog("Go2Shell error creating temp script: \(error.localizedDescription)")
+        }
+    }
+
+    private func openITerm2(at path: String) {
+        let script = """
+        tell application "iTerm"
+            activate
+            if (count of windows) = 0 then
+                create window with default profile
+            end if
+            tell current session of current window
+                write text "cd \"\(path)\""
+            end tell
+        end tell
+        """
+
+        var error: NSDictionary?
+        NSAppleScript(source: script)?.executeAndReturnError(&error)
+
+        if let err = error {
+            NSLog("Go2Shell iTerm2 error: \(err)")
         }
     }
 }
@@ -101,23 +146,19 @@ class TerminalLauncher {
 
 class Go2ShellApp: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // 检查是否有特殊标志（比如双击 Dock 图标或从 Launchpad 打开）
-        // 如果是从工具栏点击，直接执行并退出
-
         let finder = FinderPathExtractor()
         let launcher = TerminalLauncher()
         let path = finder.getCurrentPath()
 
-        // 打开终端
+        NSLog("Go2Shell: Opening terminal at: \(path)")
+
         launcher.openTerminal(at: path)
 
-        // 延迟退出，确保终端已启动
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             NSApp.terminate(nil)
         }
     }
 
-    // 当应用被双击打开时（首次安装配置）
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         showConfigWindow()
         return false
@@ -143,13 +184,8 @@ class Go2ShellApp: NSObject, NSApplicationDelegate {
     }
 }
 
-// 创建并运行应用
 let app = NSApplication.shared
 let delegate = Go2ShellApp()
 app.delegate = delegate
-
-// 设置应用为后台应用（不显示 Dock 图标）
-// 如果用户双击 .app 文件，会显示配置窗口
 app.setActivationPolicy(.accessory)
-
 app.run()
