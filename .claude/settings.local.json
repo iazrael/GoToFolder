@@ -13,7 +13,13 @@
       "Bash(log show --predicate 'process == \"\"Go2Shell\"\"' --last 1m --style compact)",
       "Bash(/Applications/Go2Shell.app/Contents/MacOS/Go2Shell)",
       "Bash(xcrun --sdk macosx --show-sdk-path)",
-      "Bash(xcodebuild -showsdks)"
+      "Bash(xcodebuild -showsdks)",
+      "Bash(lipo -info /tmp/test_arm64)",
+      "Bash(bash /Users/azrael/Code/go2shell/Scripts/generate_icon.sh)",
+      "Bash(python3 -c \"from PIL import Image; print\\(''Pillow OK''\\)\")",
+      "Bash(iconutil --convert icns /Users/azrael/Code/go2shell/Resources/AppIcon.iconset --output /Users/azrael/Code/go2shell/Resources/AppIcon.icns)",
+      "Bash(qlmanage -t -s 512 /Users/azrael/Code/go2shell/Resources/AppIcon.icns -o /private/tmp/)",
+      "Bash(ls -la /private/tmp/*.png)"
     ]
   }
 }

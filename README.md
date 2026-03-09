@@ -21,7 +21,7 @@ A lightweight macOS utility that adds a **Finder toolbar button** to instantly o
 
 ```bash
 # 1. Clone / download the project
-git clone https://github.com/yourname/GoToFolder
+git clone https://github.com/iazrael/GoToFolder
 
 # 2. Build + install in one step
 cd GoToFolder

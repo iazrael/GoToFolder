@@ -18,7 +18,8 @@ if [[ -z "$PYTHON" ]]; then
 fi
 
 # ── Generate PNG at each required size ───────────────────────────────────────
-$PYTHON - <<'PYEOF'
+export ICON_DIR
+$PYTHON <<'PYEOF'
 import os, sys
 
 try:
@@ -33,7 +34,7 @@ except ImportError:
         sys.exit(0)
 
 SIZES = [16, 32, 64, 128, 256, 512, 1024]
-ICON_DIR = os.path.join(os.path.dirname(__file__), "..", "Resources", "AppIcon.iconset")
+ICON_DIR = os.environ.get('ICON_DIR', os.path.join(os.path.dirname(__file__), "..", "Resources", "AppIcon.iconset"))
 os.makedirs(ICON_DIR, exist_ok=True)
 
 BG   = (30, 30, 30, 255)   # dark charcoal
