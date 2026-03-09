@@ -39,10 +39,6 @@ echo "════════════════════════�
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 
-# ── Generate icon (best-effort) ───────────────────────────────────────────────
-echo "→ Generating icon…"
-bash "$ROOT_DIR/Scripts/generate_icon.sh" 2>/dev/null || echo "  (icon generation skipped)"
-
 # ── Compile Swift sources ─────────────────────────────────────────────────────
 echo "→ Compiling Swift sources…"
 SWIFT_SOURCES=("$SRC_DIR"/*.swift)
