@@ -19,7 +19,11 @@
       "Bash(python3 -c \"from PIL import Image; print\\(''Pillow OK''\\)\")",
       "Bash(iconutil --convert icns /Users/azrael/Code/go2shell/Resources/AppIcon.iconset --output /Users/azrael/Code/go2shell/Resources/AppIcon.icns)",
       "Bash(qlmanage -t -s 512 /Users/azrael/Code/go2shell/Resources/AppIcon.icns -o /private/tmp/)",
-      "Bash(ls -la /private/tmp/*.png)"
+      "Bash(ls -la /private/tmp/*.png)",
+      "Bash(sips -g all /Users/azraellong/workspaces/GoToFolder/Resources/AppIcon.icns)",
+      "Bash(plutil -p /Users/azraellong/workspaces/GoToFolder/.build/GoToFolder.app/Contents/Info.plist)",
+      "Bash(chmod +x /Users/azraellong/workspaces/GoToFolder/Scripts/generate_icon.sh)",
+      "Bash(/Users/azraellong/workspaces/GoToFolder/Scripts/generate_icon.sh)"
     ]
   }
 }
